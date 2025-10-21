@@ -19,8 +19,12 @@ st.markdown(
 # -----------------------------
 # 1) Load Data
 # -----------------------------
-url = "https://raw.githubusercontent.com/charleshernandez467-alt/VSA-App/main/data/carpetasFGJ_acumulado_2025_01_.csv"
-df = pd.read_csv(url)
+
+# Cargar el archivo CSV desde el path local
+df = pd.read_csv('data/carpetasFGJ_acumulado_2025_01.csv')
+
+# Mostrar las primeras filas del DataFrame
+st.dataframe(df.head())
 
 # Show a preview of the data
 st.subheader("Dataset Preview")
@@ -132,4 +136,5 @@ st.markdown("""
 """)
 
 st.toast("App ready — complete the TODOs in the code and refresh!", icon="✅")
+
 
