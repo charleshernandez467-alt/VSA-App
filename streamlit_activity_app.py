@@ -138,8 +138,7 @@ with gcol:
             x="Course", y="Students",
             color="Semester",  # Ahora color por Semester
             title="Students per Course (filtered)",
-            text="Students",
-            colorway=["#D4AF37", "#9C1C1F"]
+            text="Students"
         )
     else:
         fig = px.line(
@@ -194,5 +193,6 @@ st.markdown(
 )
 
 st.toast("App ready — complete the TODOs in the code and refresh!", icon="✅")
+
 
 
