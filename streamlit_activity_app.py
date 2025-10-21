@@ -146,8 +146,7 @@ with gcol:
             x="Course", y="Students",
             color="Semester",
             title="Students per Course (filtered)",
-            markers=True,
-            colorway=["#D4AF37", "#9C1C1F"]
+            markers=True
         )
     fig.update_layout(xaxis_tickangle=-30, colorway=["#D4AF37", "#9C1C1F"])  # Usar dorado y rojo en los gráficos
     st.plotly_chart(fig, use_container_width=True, key="chart1")
@@ -193,6 +192,7 @@ st.markdown(
 )
 
 st.toast("App ready — complete the TODOs in the code and refresh!", icon="✅")
+
 
 
 
