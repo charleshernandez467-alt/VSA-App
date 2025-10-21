@@ -36,6 +36,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Establecer colores personalizados a través del archivo config.toml
+st.markdown("""
+    <style>
+    [theme]
+    base="light"
+    primaryColor= "#6e5b0fff"            # Color marrón oscuro
+    backgroundColor= "rgba(55, 55, 55, 1)" # Fondo gris oscuro
+    secondaryBackgroundColor="#9C1C1F"    # Rojo institucional
+    textColor="#FFFFFF"                   # Texto blanco
+    font="Roboto"
+    </style>
+""", unsafe_allow_html=True)
+
 # Título de la app
 st.title("🎯 Mini-Dashboard: KPIs + Filters + Chart")
 st.markdown(
@@ -178,4 +191,3 @@ st.markdown(
 )
 
 st.toast("App ready — complete the TODOs in the code and refresh!", icon="✅")
-
