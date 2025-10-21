@@ -29,7 +29,8 @@ The following files were used to build the project:
    -Note: This CSV was not used due to its confidential nature. Instead, a synthetic dataset was generated to mimic the structure of the actual data, ensuring the functionality and interactivity of the dashboard without compromising sensitive information.
 
 The Repository:
-
-git clone https://github.com/charleshernandez467-alt/VSA-App.git
-git clone https://github.com/charleshernandez467-alt/VSA-App.git
-git clone https://github.com/charleshernandez467-alt/VSA-App.git
+https://vsa-app-ebhsibywxpy63akwjvtqyu.streamlit.app
+https://vsa-app-ebhsibywxpy63akwjvtqyu.streamlit.app
+https://vsa-app-ebhsibywxpy63akwjvtqyu.streamlit.app
+https://vsa-app-ebhsibywxpy63akwjvtqyu.streamlit.app
+https://vsa-app-ebhsibywxpy63akwjvtqyu.streamlit.app
