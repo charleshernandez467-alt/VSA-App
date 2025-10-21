@@ -13,9 +13,9 @@ textColor="#FFFFFF"                   # Letra blanca para la barra lateral
 
 # Encabezado
 [header]
-backgroundColor="#F1C40F"             # Encabezados en dorado
+backgroundColor="#D4AF37"             # Dorado más suave
 textColor="#FFFFFF"                   # Letra blanca para los encabezados
 
 # Botones
 [button]
-primaryColor="#F1C40F"                # Botones dorados
+primaryColor="#D4AF37"                # Dorado más suave para los botones
