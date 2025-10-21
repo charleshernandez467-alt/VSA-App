@@ -2,139 +2,159 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Page Configuration
-st.set_page_config(page_title="CDMX Crime Dashboard", layout="wide")
+# -----------------------------
+# 0) Título e Introducción
+# -----------------------------
+st.set_page_config(page_title="Mini-Dashboard Activity", layout="wide")
 
-# -----------------------------
-# 0) Title & Introduction
-# -----------------------------
-st.title("👮‍♂️ CDMX Crime Dashboard")
+# Estilo de los encabezados dorados
+st.markdown("""
+    <style>
+    .stText {
+        color: #F1C40F;
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🎯 Mini-Dashboard: KPIs + Filters + Chart")
 st.markdown(
     """
-    **Goal:** Visualize crime data from Mexico City using Streamlit and official data.
-    **Dataset:** Crime data from the **Mexico City Attorney General's Office** (FGJCDMX).
-    """
+    **Goal:** Build a tiny, interactive dashboard using Streamlit + pandas +
+    Plotly.
+    **Dataset:** Synthetic "Course Enrollments" across Departments.
+    """, 
+    unsafe_allow_html=True
 )
 
 # -----------------------------
-# 1) Load Data
+# 1) Data (pre-loaded)
 # -----------------------------
-
-# Cargar el archivo CSV desde el path local
-df = pd.read_csv('data/carpetasFGJ_acumulado_2025_01.csv')
-
-# Mostrar las primeras filas del DataFrame
-st.dataframe(df.head())
-
-# Show a preview of the data
-st.subheader("Dataset Preview")
-st.dataframe(df.head())
+df = pd.DataFrame({
+    "Department": [
+        "Finance", "Finance", "Finance",
+        "Marketing", "Marketing", "Marketing",
+        "Engineering", "Engineering", "Engineering"
+    ],
+    "Course": [
+        "Intro Analytics", "Risk Models", "Financial Viz",
+        "Marketing Basics", "Segmentation", "Campaigns",
+        "Intro Robotics", "ML for Sensors", "Control Systems"
+    ],
+    "Students": [55, 38, 44, 60, 35, 42, 48, 51, 39],
+    "Satisfaction": [4.2, 3.9, 4.1, 4.5, 4.0, 3.8, 4.3, 4.4, 4.1],  # 1–5
+    "Semester": ["A", "A", "B", "A", "B", "B", "A", "A", "B"]
+})
 
 # -----------------------------
-# 2) Filters in the Sidebar
+# 2) Sidebar filters
 # -----------------------------
 st.sidebar.header("Filters")
-# Crime type: include an "All" option so default is valid
-crime_options = ["All"] + sorted(df["delito"].dropna().unique().tolist())
-crime_type = st.sidebar.selectbox(
-    "Crime Type", options=crime_options, index=0, key="crime_filter"
+dept = st.sidebar.multiselect(
+    "Department", options=sorted(df["Department"].unique()), default=None, key="dept_filter"
 )
-# Alcaldía multiselect: default to all (empty selection means show all)
-alcaldia_options = sorted(df["alcaldia"].dropna().unique().tolist())
-alcaldia_filter = st.sidebar.multiselect(
-    "Select Alcaldía", options=alcaldia_options, default=None, key="alcaldia_filter"
+sem = st.sidebar.multiselect(
+    "Semester", options=sorted(df["Semester"].unique()), default=None, key="sem_filter"
 )
 
-# Filter data based on selections
-filtered_df = df.copy()
-# Apply crime_type filter only when a specific crime is selected
-if crime_type and crime_type != "All":
-    filtered_df = filtered_df[filtered_df["delito"] == crime_type]
-# Apply alcaldia filter if the user selected one or more alcaldías
-if alcaldia_filter:
-    filtered_df = filtered_df[filtered_df["alcaldia"].isin(alcaldia_filter)]
+# Radio button para tipo de gráfico
+chart_type = st.sidebar.radio(
+    "Chart type:",
+    ["Bar Chart", "Line Chart"],
+    key="chart_type_toggle"
+)
+
+fdf = df.copy()
+if dept:
+    fdf = fdf[fdf["Department"].isin(dept)]
+if sem:
+    fdf = fdf[fdf["Semester"].isin(sem)]
 
 # -----------------------------
-# 3) KPIs (Key Performance Indicators)
+# 3) KPIs (top row)
 # -----------------------------
-c1, c2, c3 = st.columns(3)
-# Total crimes is simply the number of rows in the filtered dataframe
-total_crimes = int(len(filtered_df))
-# Crimes per alcaldía (grouped counts)
-if not filtered_df.empty and "alcaldia" in filtered_df.columns:
-    counts_by_alcaldia = filtered_df.groupby("alcaldia")["delito"].count()
-    avg_crimes_per_alcaldia = float(counts_by_alcaldia.mean())
-    max_crimes = int(counts_by_alcaldia.max())
-else:
-    avg_crimes_per_alcaldia = 0.0
-    max_crimes = 0
+c1, c2, c3, c4 = st.columns(4)
+total_students = int(fdf["Students"].sum())
+avg_class = float(fdf["Students"].mean()) if not fdf.empty else 0.0
+avg_sat = float(fdf["Satisfaction"].mean()) if not fdf.empty else 0.0
+num_courses = int(fdf["Course"].nunique())
+max_sat = float(fdf["Satisfaction"].max()) if not fdf.empty else 0.0
 
-c1.metric("Total Crimes", f"{total_crimes:,}")
-c2.metric("Avg. Crimes per Alcaldía", f"{avg_crimes_per_alcaldia:.1f}")
-c3.metric("Max Crimes per Alcaldía", f"{max_crimes}")
+c1.metric("Total Students", f"{total_students:,}")
+c2.metric("Avg. Students / Course", f"{avg_class:.1f}")
+c3.metric("Avg. Satisfaction", f"{avg_sat:.2f} / 5")
+c4.metric("Courses", f"{num_courses}")
 
-# Additional KPI: Most frequent crime (guard for empty DF)
-if not filtered_df.empty and "delito" in filtered_df.columns:
-    try:
-        most_freq = filtered_df['delito'].mode()[0]
-    except Exception:
-        most_freq = "N/A"
-else:
-    most_freq = "N/A"
-st.metric("Most Frequent Crime", f"{most_freq}")
+# KPI: Max Satisfaction
+st.metric("🌟 Max Satisfaction", f"{max_sat:.2f}")
 
 # -----------------------------
-# 4) Visualizations (Charts)
+# 4) Table + Chart (second row)
 # -----------------------------
-st.subheader("🔴 Crimes by Alcaldía")
-if not filtered_df.empty and "alcaldia" in filtered_df.columns:
-    df_group = filtered_df.groupby("alcaldia")["delito"].count().reset_index(name="count")
-    fig = px.bar(df_group, x="alcaldia", y="count", color="alcaldia", title="Crimes by Alcaldía")
-    st.plotly_chart(fig, use_container_width=True)
-else:
-    st.info("No data available to show Crimes by Alcaldía.")
+tcol, gcol = st.columns([1, 2])
+with tcol:
+    st.subheader("Filtered Data", anchor="filtered-data")
+    st.dataframe(fdf, use_container_width=True, hide_index=True)
 
-# Additional Graph: Satisfaction by Crime Type
-st.subheader("📊 Satisfaction by Crime Type")
-if "satisfaccion" in filtered_df.columns and not filtered_df.empty:
-    fig2 = px.box(
-        filtered_df,
-        x="delito",
-        y="satisfaccion",
-        color="delito",
-        title="Satisfaction by Crime Type"
-    )
-    st.plotly_chart(fig2, use_container_width=True)
-else:
-    st.info("Column 'satisfaccion' not found or no data available for Satisfaction chart.")
+with gcol:
+    st.subheader("Students by Course")
+    # Gráfico principal: color por Semester y según radio button
+    if chart_type == "Bar Chart":
+        fig = px.bar(
+            fdf,
+            x="Course", y="Students",
+            color="Semester",  # Ahora color por Semester
+            title="Students per Course (filtered)",
+            text="Students"
+        )
+    else:
+        fig = px.line(
+            fdf,
+            x="Course", y="Students",
+            color="Semester",
+            title="Students per Course (filtered)",
+            markers=True
+        )
+    fig.update_layout(xaxis_tickangle=-30)
+    st.plotly_chart(fig, use_container_width=True, key="chart1")
+
+# Segundo gráfico: Comparar Satisfaction por Department
+fig2 = px.box(
+    fdf,
+    x="Department",
+    y="Satisfaction",
+    color="Department",
+    title="Satisfaction by Department"
+)
+st.plotly_chart(fig2, use_container_width=True, key="chart2")
 
 # -----------------------------
-# 5) Filtered Data Table
+# 5) mini-questions
 # -----------------------------
-st.subheader("Filtered Data")
-st.dataframe(filtered_df, use_container_width=True)
-
-# -----------------------------
-# 6) Mini Questions (Bonus)
-# -----------------------------
-with st.expander("Bonus: Answer these directly in Streamlit text inputs"):
-    q1 = st.text_input("Q1) Which alcaldía has the highest total enrollment under your current filter?", key="q1")
-    q2 = st.text_input("Q2) Which single crime type is the most frequent?", key="q2")
+with st.expander(" Bonus: answer these directly in Streamlit text inputs"):
+    q1 = st.text_input("Q1) Which department has the highest total enrollment under your current filter?", key="q1")
+    q2 = st.text_input("Q2) Which single course is the most popular?", key="q2")
     q3 = st.text_area("Q3) Propose one actionable insight based on the chart/KPIs:", key="q3")
-st.caption("Tip: Adjust filters and read the KPIs and chart to justify your answers.")
+st.caption("Tip: adjust filters and read the KPIs + chart to justify your answers.")
 
 # -----------------------------
-# 7) Activity TODOs
+# 6) TODOs for activity
 # -----------------------------
-st.markdown("""
+st.markdown(
+    """
     ---
     ## Your TODOs for this activity
-    1. **Bar Chart Grouping**: Modify the bar chart to color by **Alcaldía** instead of Department. Briefly explain the difference you observe.
-    2. **New KPI**: Add a KPI that shows the **max** number of crimes in the filtered data.
-    3. **Second Chart**: Create a new chart (bar or box) to compare **Satisfaction by Crime Type** or **Crimes by Alcaldía**.
-    4. **Chart Type Toggle**: Add a chart type toggle to choose between Bar Chart and Line Chart. Based on the selection, update the main visualization.
-""")
-
+    1. **Chart grouping:** Modify the bar chart to color by **Semester** instead of
+    Department. Briefly explain the difference you observe.
+    2. **New KPI:** Add a KPI that shows the **max** satisfaction score in the
+    filtered data.
+    3. **Second chart:** Create a new chart (bar or box) to compare **Satisfaction
+    by Department** or **Students by Semester**.
+    4. **radio button:** Add a chart type toggle:Create a radio button in the
+    sidebar where students can choose between Bar Chart and Line Chart.
+    Based on the selection, update the main visualization
+    (px.bar or px.line) for Students per Course.
+    """
+)
 st.toast("App ready — complete the TODOs in the code and refresh!", icon="✅")
-
 
