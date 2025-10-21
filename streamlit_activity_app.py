@@ -11,7 +11,7 @@ st.set_page_config(page_title="Mini-Dashboard Activity", layout="wide")
 st.markdown("""
     <style>
     .stText {
-        color: #F1C40F;
+        color: #F1C40F;  # Dorado suave para los encabezados
         font-weight: bold;
     }
     .stMetricValue {
@@ -20,17 +20,17 @@ st.markdown("""
         color: #333333;
     }
     .stHeader {
-        background-color: #F1C40F;
+        background-color: #D4AF37;  # Dorado más oscuro
         color: white;
         font-weight: bold;
     }
     .stTable th {
-        background-color: #F1C40F;
+        background-color: #D4AF37;  # Dorado para los encabezados de tabla
         color: white;
         font-weight: bold;
     }
     .stToast {
-        background-color: #F1C40F;
+        background-color: #D4AF37;  # Cambiar el amarillo chillante a un dorado más suave
         color: white;
     }
     </style>
@@ -148,7 +148,7 @@ with gcol:
             title="Students per Course (filtered)",
             markers=True
         )
-    fig.update_layout(xaxis_tickangle=-30)
+    fig.update_layout(xaxis_tickangle=-30, colorway=["#D4AF37", "#9C1C1F"])  # Usar dorado y rojo en los gráficos
     st.plotly_chart(fig, use_container_width=True, key="chart1")
 
 # Segundo gráfico: Comparar Satisfacción por Departamento
@@ -157,7 +157,8 @@ fig2 = px.box(
     x="Department",
     y="Satisfaction",
     color="Department",
-    title="Satisfaction by Department"
+    title="Satisfaction by Department",
+    color_discrete_sequence=["#D4AF37", "#9C1C1F"]  # Usar dorado y rojo en los gráficos
 )
 st.plotly_chart(fig2, use_container_width=True, key="chart2")
 
@@ -191,3 +192,4 @@ st.markdown(
 )
 
 st.toast("App ready — complete the TODOs in the code and refresh!", icon="✅")
+
