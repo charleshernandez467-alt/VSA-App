@@ -16,4 +16,4 @@ backgroundColor="#F1C40F"             # Encabezados en dorado
 textColor="#FFFFFF"                   # Letra blanca para los encabezados
 
 [button]
-primaryColor="#F1C40F"                # Botones dorados
+primaryColor=  "#6e5b0fff"            # Botones dorados
