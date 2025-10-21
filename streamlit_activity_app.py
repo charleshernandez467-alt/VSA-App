@@ -1,110 +1,112 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
 import plotly.express as px
 
 # -----------------------------
 # 0) Título e Introducción
 # -----------------------------
-st.set_page_config(page_title="Mini-Dashboard Activity", layout="wide")
+st.set_page_config(page_title="CDMX Crime Dashboard", layout="wide")
 
-# Estilo de los encabezados dorados
+# Aplicando estilo con CSS
 st.markdown("""
     <style>
     .stText {
         color: #F1C40F;
         font-weight: bold;
     }
+    .stMetricValue {
+        font-size: 24px;
+        font-weight: bold;
+        color: #333333;
+    }
+    .stHeader {
+        background-color: #F1C40F;
+        color: white;
+        font-weight: bold;
+    }
+    .stTable th {
+        background-color: #F1C40F;
+        color: white;
+        font-weight: bold;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🎯 Mini-Dashboard: KPIs + Filters + Chart")
+# Título de la app
+st.title("👮‍♂️ Dashboard de Crímenes en la Ciudad de México")
 st.markdown(
     """
-    **Goal:** Build a tiny, interactive dashboard using Streamlit + pandas +
-    Plotly.
-    **Dataset:** Synthetic "Course Enrollments" across Departments.
+    **Objetivo:** Visualizar la información de crímenes reportados en la Ciudad de México utilizando Streamlit y datos oficiales.
+    **Datos:** Dataset de crímenes de la **Fiscalía General de Justicia de la Ciudad de México** (FGJCDMX).
     """, 
     unsafe_allow_html=True
 )
 
 # -----------------------------
-# 1) Data (pre-loaded)
+# 1) Cargar los datos
 # -----------------------------
-df = pd.DataFrame({
-    "Department": [
-        "Finance", "Finance", "Finance",
-        "Marketing", "Marketing", "Marketing",
-        "Engineering", "Engineering", "Engineering"
-    ],
-    "Course": [
-        "Intro Analytics", "Risk Models", "Financial Viz",
-        "Marketing Basics", "Segmentation", "Campaigns",
-        "Intro Robotics", "ML for Sensors", "Control Systems"
-    ],
-    "Students": [55, 38, 44, 60, 35, 42, 48, 51, 39],
-    "Satisfaction": [4.2, 3.9, 4.1, 4.5, 4.0, 3.8, 4.3, 4.4, 4.1],  # 1–5
-    "Semester": ["A", "A", "B", "A", "B", "B", "A", "A", "B"]
-})
+# Cargar el archivo CSV
+df = pd.read_csv('data/carpetasFGJ_acumulado_2025_01.csv', dtype={'alcaldia': str, 'delito': str})
+
+# Limpiar los nombres de las columnas (eliminar espacios extras)
+df.columns = df.columns.str.strip()
 
 # -----------------------------
-# 2) Sidebar filters
+# 2) Filtros en la barra lateral
 # -----------------------------
-st.sidebar.header("Filters")
-dept = st.sidebar.multiselect(
-    "Department", options=sorted(df["Department"].unique()), default=None, key="dept_filter"
+st.sidebar.header("Filtros")
+crime_type = st.sidebar.selectbox(
+    "Tipo de Crimen", options=sorted(df["delito"].unique()), default=None, key="crime_filter"
 )
-sem = st.sidebar.multiselect(
-    "Semester", options=sorted(df["Semester"].unique()), default=None, key="sem_filter"
+alcaldia_filter = st.sidebar.multiselect(
+    "Selecciona Alcaldía", options=sorted(df["alcaldia"].unique()), default=None, key="alcaldia_filter"
 )
 
 # Radio button para tipo de gráfico
 chart_type = st.sidebar.radio(
-    "Chart type:",
-    ["Bar Chart", "Line Chart"],
+    "Tipo de Gráfico:",
+    ["Gráfico de Barras", "Gráfico de Líneas"],
     key="chart_type_toggle"
 )
 
 fdf = df.copy()
-if dept:
-    fdf = fdf[fdf["Department"].isin(dept)]
-if sem:
-    fdf = fdf[fdf["Semester"].isin(sem)]
+if crime_type:
+    fdf = fdf[fdf["delito"] == crime_type]
+if alcaldia_filter:
+    fdf = fdf[fdf["alcaldia"].isin(alcaldia_filter)]
 
 # -----------------------------
-# 3) KPIs (top row)
+# 3) KPIs (Indicadores Clave)
 # -----------------------------
 c1, c2, c3, c4 = st.columns(4)
-total_students = int(fdf["Students"].sum())
-avg_class = float(fdf["Students"].mean()) if not fdf.empty else 0.0
-avg_sat = float(fdf["Satisfaction"].mean()) if not fdf.empty else 0.0
-num_courses = int(fdf["Course"].nunique())
-max_sat = float(fdf["Satisfaction"].max()) if not fdf.empty else 0.0
+total_crimes = int(fdf["delito"].count())
+avg_crimes_per_alcaldia = float(fdf.groupby("alcaldia")["delito"].count().mean()) if not fdf.empty else 0.0
+max_crimes = int(fdf["delito"].max())
 
-c1.metric("Total Students", f"{total_students:,}")
-c2.metric("Avg. Students / Course", f"{avg_class:.1f}")
-c3.metric("Avg. Satisfaction", f"{avg_sat:.2f} / 5")
-c4.metric("Courses", f"{num_courses}")
+c1.metric("Total de Crímenes", f"{total_crimes:,}")
+c2.metric("Promedio Crímenes / Alcaldía", f"{avg_crimes_per_alcaldia:.1f}")
+c3.metric("Máximo Crímenes / Alcaldía", f"{max_crimes}")
+c4.metric("Alcaldías", f"{len(fdf['alcaldia'].unique())}")
 
 # KPI: Max Satisfaction
-st.metric("🌟 Max Satisfaction", f"{max_sat:.2f}")
+st.metric("🌟 Satisfacción Máxima", f"{max_crimes:.2f}")
 
 # -----------------------------
-# 4) Table + Chart (second row)
+# 4) Tabla + Gráfico (segunda fila)
 # -----------------------------
 tcol, gcol = st.columns([1, 2])
 with tcol:
-    st.subheader("Filtered Data", anchor="filtered-data")
+    st.subheader("Datos Filtrados")
     st.dataframe(fdf, use_container_width=True, hide_index=True)
 
 with gcol:
-    st.subheader("Students by Course")
-    # Gráfico principal: color por Semester y según radio button
-    if chart_type == "Bar Chart":
+    st.subheader("Crímenes por Curso")
+    if chart_type == "Gráfico de Barras":
         fig = px.bar(
             fdf,
             x="Course", y="Students",
             color="Semester",  # Ahora color por Semester
-            title="Students per Course (filtered)",
+            title="Crímenes por Curso (filtrado)",
             text="Students"
         )
     else:
@@ -112,49 +114,43 @@ with gcol:
             fdf,
             x="Course", y="Students",
             color="Semester",
-            title="Students per Course (filtered)",
+            title="Crímenes por Curso (filtrado)",
             markers=True
         )
     fig.update_layout(xaxis_tickangle=-30)
     st.plotly_chart(fig, use_container_width=True, key="chart1")
 
-# Segundo gráfico: Comparar Satisfaction por Department
+# Segundo gráfico: Comparar Satisfacción por Departamento
 fig2 = px.box(
     fdf,
     x="Department",
     y="Satisfaction",
     color="Department",
-    title="Satisfaction by Department"
+    title="Satisfacción por Departamento"
 )
 st.plotly_chart(fig2, use_container_width=True, key="chart2")
 
 # -----------------------------
-# 5) mini-questions
+# 5) Mini-preguntas
 # -----------------------------
-with st.expander(" Bonus: answer these directly in Streamlit text inputs"):
-    q1 = st.text_input("Q1) Which department has the highest total enrollment under your current filter?", key="q1")
-    q2 = st.text_input("Q2) Which single course is the most popular?", key="q2")
-    q3 = st.text_area("Q3) Propose one actionable insight based on the chart/KPIs:", key="q3")
-st.caption("Tip: adjust filters and read the KPIs + chart to justify your answers.")
+with st.expander("Bonus: Responde estas preguntas directamente en los inputs de Streamlit"):
+    q1 = st.text_input("Q1) ¿Cuál alcaldía tiene el mayor número de crímenes bajo tu filtro actual?", key="q1")
+    q2 = st.text_input("Q2) ¿Cuál es el curso más popular?", key="q2")
+    q3 = st.text_area("Q3) Proporciona una idea accionable basada en los gráficos/KPIs:", key="q3")
+st.caption("Consejo: Ajusta los filtros y lee los KPIs + gráficos para justificar tus respuestas.")
 
 # -----------------------------
-# 6) TODOs for activity
+# 6) TODOs para la actividad
 # -----------------------------
 st.markdown(
     """
     ---
-    ## Your TODOs for this activity
-    1. **Chart grouping:** Modify the bar chart to color by **Semester** instead of
-    Department. Briefly explain the difference you observe.
-    2. **New KPI:** Add a KPI that shows the **max** satisfaction score in the
-    filtered data.
-    3. **Second chart:** Create a new chart (bar or box) to compare **Satisfaction
-    by Department** or **Students by Semester**.
-    4. **radio button:** Add a chart type toggle:Create a radio button in the
-    sidebar where students can choose between Bar Chart and Line Chart.
-    Based on the selection, update the main visualization
-    (px.bar or px.line) for Students per Course.
+    ## Tus TODOs para esta actividad
+    1. **Agrupar en el gráfico:** Modifica el gráfico de barras para colorear por **Alcaldía** en lugar de Departamento. Explica brevemente la diferencia que observas.
+    2. **Nuevo KPI:** Agrega un KPI que muestre la **máxima satisfacción** en los datos filtrados.
+    3. **Segundo gráfico:** Crea un nuevo gráfico (de barras o caja) para comparar **Satisfacción por Departamento** o **Crímenes por Alcaldía**.
+    4. **Botón de radio:** Agrega un toggle para el tipo de gráfico: un botón de radio en la barra lateral donde los usuarios puedan elegir entre **Gráfico de Barras** y **Gráfico de Líneas**. Según la selección, actualiza la visualización principal (px.bar o px.line) para **Crímenes por Curso**.
     """
 )
-st.toast("App ready — complete the TODOs in the code and refresh!", icon="✅")
 
+st.toast("¡App lista! Completa los TODOs en el código y actualiza.", icon="✅")
