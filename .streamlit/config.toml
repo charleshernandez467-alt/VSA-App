@@ -1,0 +1,7 @@
+[theme]
+base="light"
+primaryColor="#9C1C1F"               # Rojo vino institucional
+backgroundColor="#FFFFFF"            # Fondo blanco
+secondaryBackgroundColor="#F1C40F"   # Dorado institucional
+textColor="#333333"                  # Gris oscuro para el texto
+font="Roboto"
