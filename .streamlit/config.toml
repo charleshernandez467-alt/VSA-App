@@ -19,3 +19,8 @@ textColor="#FFFFFF"                   # Letra blanca para los encabezados
 # Botones
 [button]
 primaryColor="#D4AF37"                # Dorado más suave para los botones
+
+# Toast (notificaciones) - Cambiar el color de fondo dorado brillante a uno más suave
+[toast]
+backgroundColor="#D4AF37"             # Dorado más suave
+textColor="#FFFFFF"                   # Texto blanco
