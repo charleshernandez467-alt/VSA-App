@@ -2,7 +2,7 @@
 base="light"
 primaryColor= "#9C1C1F"               # Rojo institucional 
 backgroundColor= "rgba(55, 55, 55, 1)"            # Fondo negro
-secondaryBackgroundColor="#F1C40F"    # Dorado (para secundarios)
+secondaryBackgroundColor= "#6e5b0fff"    # Dorado (para secundarios)
 textColor="#FFFFFF"                   # Letra blanca
 font="Roboto"
 
